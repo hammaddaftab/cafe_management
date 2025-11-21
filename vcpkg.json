@@ -1,6 +1,7 @@
 {
   "dependencies": [
+    "crow",
     "fmt",
-    "crow"
+    "sqlite3"
   ]
 }

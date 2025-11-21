@@ -39,3 +39,20 @@ Abi: 4f2108f4236860d540f8fb99c599156ffe1763d9d50547f58aeee22b90582ba2
 Description: Very fast and easy to use C++ micro web framework
 Status: install ok installed
 
+Package: sqlite3
+Version: 3.51.0
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 926c5a8f831d37a67dd2d8bd3ca5a89d7fc358f470adaef4d37dfa28e4de1cff
+Description: SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
+Default-Features: json1
+Status: install ok installed
+
+Package: sqlite3
+Feature: json1
+Architecture: x64-windows
+Multi-Arch: same
+Description: Enable JSON functionality for sqlite3
+Status: install ok installed
+
