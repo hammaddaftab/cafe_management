@@ -133,6 +133,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sqlite_helper.cpp" />
     <ClCompile Include="helper.cpp" />
   </ItemGroup>
   <ItemGroup>

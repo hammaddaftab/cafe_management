@@ -19,6 +19,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="helper.cpp">
+    <ClCompile Include="sqlite_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
