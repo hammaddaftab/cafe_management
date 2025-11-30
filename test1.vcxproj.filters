@@ -19,6 +19,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="sqlite_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -27,7 +29,7 @@
     <None Include="file.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header.h">
+    <ClInclude Include="header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

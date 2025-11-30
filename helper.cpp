@@ -1,5 +1,9 @@
-#include "Header.h"
+#include <iostream>
+#include "header.h"
+using namespace std;
 
+
+// string cookie_str = req.get_header_value("Session
 string getValueFromCookie(const string cookie_str, const string name) {
 	string prefix = name + "=";
 
@@ -10,12 +14,8 @@ string getValueFromCookie(const string cookie_str, const string name) {
 
 	size_t start_of_value = start_of_pair + prefix.size();
 	size_t end_of_both = cookie_str.find(";", start_of_pair);
-	cout << start_of_pair << " " << start_of_value << " " << end_of_both;
 	return cookie_str.substr(start_of_value, end_of_both - start_of_value);
 };
-
-
-
 
 
 int main_() {

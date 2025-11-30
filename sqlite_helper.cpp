@@ -1,17 +1,7 @@
 #include <iostream>
-#include <string>
-#include <vector>
-#include <sqlite3.h>
+#include "header.h"
 
 using namespace std;
-
-//Structure to store product row in an array
-struct Product {
-	int id;
-	string name;
-	string subgroup;
-	double price;
-};
 
 //Open the connection to the database
 sqlite3* openDB() {
