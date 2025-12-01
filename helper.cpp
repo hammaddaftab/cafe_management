@@ -17,6 +17,18 @@ string getValueFromCookie(const string cookie_str, const string name) {
 	return cookie_str.substr(start_of_value, end_of_both - start_of_value);
 };
 
+bool is_admin(const crow::request& req, const string secret_key) {
+	const string cookie_str = req.get_header_value("Cookie");
+	const string session_id = getValueFromCookie(cookie_str, "session_id");
+	return session_id == secret_key;
+};
+
+crow::response custom_redirect(string path) {
+	crow::response res{};
+	res.redirect(path);
+	return res;
+};
+
 
 int main_() {
 	string test_cookie{ "session_id=abcdef; preferences=null" };
