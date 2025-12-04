@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Add New Cafe Item</title>
+
+        <link rel="stylesheet" href="style.css"> 
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    </head>
+    <body>
+        
+        <div id="lottie-background"></div>
+
+        <div class="header-left">
+            <div class="header-text">CONCORDIA 2</div>
+        </div>
+
+        <div class="logo-container">
+            <img src="./logo.png" alt="NUST Logo">
+        </div>
+        
+        <div class="container">
+            <h2 class="form-header">Product Entry</h2>
+            
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Product Name:</label>
+                    <input type="text" id="productName" name="name" required placeholder="e.g., Biryani ,Shawarma">
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">Price:</label>
+                    <input type="number" id="productPrice" name="price" required min="10" step="10" placeholder="e.g., 270">
+                </div>
+
+                <div class="form-group">
+                    <label for="productGroup">Group / Category:</label>
+                    <input type="text" id="productGroup" name="group" required placeholder="e.g., shakes, Fast Food">
+                </div>
+
+                <button type="enter">Submit Product</button>
+            </form>
+        </div>
+
+        <script>
+            // Initialise Local Storage data if it doesn't exist
+            if (!localStorage.getItem('cafeProducts')) {
+                // Start with an empty array or some initial data
+                localStorage.setItem('cafeProducts', JSON.stringify([]));
+                localStorage.setItem('nextProductId', '1'); // Counter for unique IDs
+            }
+
+            document.getElementById('productForm').addEventListener('submit', function(e) {
+                e.preventDefault(); // Stop the default form submission
+
+                const form = e.target;
+                
+                // 1. Gather data
+                const newName = form.productName.value;
+                const newPrice = parseFloat(form.productPrice.value);
+                const newGroup = form.productGroup.value;
+
+                // 2. Load existing data and next ID
+                let products = JSON.parse(localStorage.getItem('cafeProducts'));
+                let nextId = parseInt(localStorage.getItem('nextProductId'));
+
+                // 3. Create new product object
+                const newProduct = {
+                    id: nextId,
+                    name: newName,
+                    price: newPrice,
+                    group: newGroup
+                };
+
+                // 4. Add to array, update ID, and save
+                products.push(newProduct);
+                localStorage.setItem('cafeProducts', JSON.stringify(products));
+                localStorage.setItem('nextProductId', (nextId + 1).toString());
+
+                // 5. Clear the form and redirect
+                form.reset();
+                alert(`Product ${newName} added!`);
+                // Use the actual filename of your data display page here
+                window.location.href = 'data.html'; // <<< UPDATE THIS FILENAME
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                lottie.loadAnimation({
+                    container: document.getElementById('lottie-background'),
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: './Cafe.json' 
+                });
+            });
+        </script>
+    </body>
+</html>
