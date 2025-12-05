@@ -3,6 +3,7 @@
 
 using namespace std;
 
+
 //Open the connection to the database
 sqlite3* openDB() {
 	sqlite3* db;
@@ -28,7 +29,7 @@ void CreateTables(sqlite3* db)
 	const char* Orders =
 		"CREATE TABLE IF NOT EXISTS Orders ("
 		"Order_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-		"Time TEXT,"
+		"Time INTEGER,"
 		"Customer_name TEXT);";
 
 	const char* ordered_items =
@@ -116,14 +117,14 @@ vector<Product> selectAllProducts(sqlite3* db)
 }
 
 //Add orders
-int addOrder(sqlite3* db, string time, string name)
+int addOrder(sqlite3* db, int timeValue, string name)
 {
 	const char* sql = "INSERT INTO Orders (Time, Customer_name) VALUES (?,?);";
 
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-	sqlite3_bind_text(stmt, 1, time.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_int(stmt, 1, timeValue);
 	sqlite3_bind_text(stmt, 2, name.c_str(), -1, SQLITE_TRANSIENT);
 
 	sqlite3_step(stmt);
@@ -172,3 +173,196 @@ void updateStatus(sqlite3* db, int order_id, int product_id)
 
 }
 
+//Function to delete a product from the inventory
+void deleteProduct(sqlite3* db, int id)
+{
+	const char* sql = "DELETE FROM Products WHERE Product_id = ?;";
+
+	sqlite3_stmt * stmt;
+	int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+	if (rc != SQLITE_OK)
+	{
+		cout<<"Prepare Failed!"<<sqlite3_errmsg(db)<<endl;
+		return;
+	}
+
+	sqlite3_bind_int(stmt, 1, id);
+
+	rc = sqlite3_step(stmt);
+
+	if (rc == SQLITE_DONE) {
+		cout << "Product deleted successfully!\n";
+	}
+	else {
+		cerr << "Delete failed: " << sqlite3_errmsg(db) << endl;
+	}
+
+	sqlite3_finalize(stmt);
+}
+
+
+//Function to return the pending orders for each specific subgroup
+vector<Product_Count> getOrderedProductsBySubgroup(sqlite3* db, const string& subgroup)
+{
+	vector<Product_Count> result;
+
+	const char* sql =
+		"SELECT Products.Product_id, Products.Name, SUM(OrderItems.Quantity) "
+		"FROM OrderItems "
+		"JOIN Products ON OrderItems.Product_id = Products.Product_id "
+		"WHERE Products.Subgroup = ? AND OrderItems.is_ready = 0 "
+		"GROUP BY Products.Product_id, Products.Name;";
+
+	sqlite3_stmt* stmt;
+
+	int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+	if (rc != SQLITE_OK)
+	{
+		cout << "Prepare failed: " << sqlite3_errmsg(db) << endl;
+		return result;
+	}
+
+	sqlite3_bind_text(stmt, 1, subgroup.c_str(), -1, SQLITE_TRANSIENT);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		Product_Count pc;
+
+		pc.product_id = sqlite3_column_int(stmt, 0);
+
+		const unsigned char* txt = sqlite3_column_text(stmt, 1);
+		pc.name = txt ? (const char*)txt : "";
+
+		pc.total_quantity = sqlite3_column_int(stmt, 2);
+
+		result.push_back(pc);
+	}
+
+	sqlite3_finalize(stmt);
+	return result;
+}
+
+
+//Function to update the oldest order just by name
+void markOldestPendingReady(sqlite3* db, const string& productName)
+{
+	// SQL: find the oldest pending OrderItems row for this product
+	const char* sql =
+		"UPDATE OrderItems "
+		"SET is_ready = 1 "
+		"WHERE Sr = ("
+		"  SELECT Sr FROM OrderItems "
+		"  JOIN Products ON OrderItems.Product_id = Products.Product_id "
+		"  WHERE Products.Name = ? AND OrderItems.is_ready = 0 "
+		"  ORDER BY OrderItems.Order_id ASC "
+		"  LIMIT 1"
+		");";
+
+	sqlite3_stmt* stmt;
+
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		cout << "Prepare failed: " << sqlite3_errmsg(db) << endl;
+		return;
+	}
+
+	// Bind product name
+	sqlite3_bind_text(stmt, 1, productName.c_str(), -1, SQLITE_TRANSIENT);
+
+	// Execute
+	if (sqlite3_step(stmt) != SQLITE_DONE)
+	{
+		cout << "Update failed: " << sqlite3_errmsg(db) << endl;
+	}
+	else
+	{
+		cout << "Oldest pending '" << productName << "' marked as READY.\n";
+	}
+
+	sqlite3_finalize(stmt);
+}
+
+
+//Function to display the order info to a customer on his device
+Order getOrderById(sqlite3* db, int order_id)
+{
+	Order order;
+	order.order_id = order_id;
+
+	// First, get order info from Orders table
+	const char* orderSql = "SELECT Customer_name, Time FROM Orders WHERE Order_id = ?;";
+	sqlite3_stmt* stmt;
+
+	if (sqlite3_prepare_v2(db, orderSql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		cout << "Prepare failed: " << sqlite3_errmsg(db) << endl;
+		return order;
+	}
+
+	sqlite3_bind_int(stmt, 1, order_id);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		const unsigned char* nameText = sqlite3_column_text(stmt, 0);
+		order.customer_name = nameText ? (const char*)nameText : "";
+		order.time = sqlite3_column_int(stmt, 1);
+	}
+	else
+	{
+		cout << "Order not found.\n";
+		sqlite3_finalize(stmt);
+		return order;
+	}
+
+	sqlite3_finalize(stmt);
+
+	// Now get all items for this order
+	const char* itemsSql =
+		"SELECT Products.Product_id, Products.Name, OrderItems.Quantity, OrderItems.is_ready "
+		"FROM OrderItems "
+		"JOIN Products ON OrderItems.Product_id = Products.Product_id "
+		"WHERE OrderItems.Order_id = ?;";
+
+	if (sqlite3_prepare_v2(db, itemsSql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		cout << "Prepare failed: " << sqlite3_errmsg(db) << endl;
+		return order;
+	}
+
+	sqlite3_bind_int(stmt, 1, order_id);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		OrderItem item;
+		item.product_id = sqlite3_column_int(stmt, 0);
+
+		const unsigned char* nameText = sqlite3_column_text(stmt, 1);
+		item.name = nameText ? (const char*)nameText : "";
+
+		item.quantity = sqlite3_column_int(stmt, 2);
+		item.is_ready = sqlite3_column_int(stmt, 3);
+
+		order.items.push_back(item);
+	}
+
+	sqlite3_finalize(stmt);
+
+	return order;
+}
+
+
+//Function to close the database
+void closeDB(sqlite3* db)
+{
+	if (db != nullptr)
+	{
+		sqlite3_close(db);
+		cout << "Database closed successfully.\n";
+	}
+	else
+	{
+		cout << "Database is already null.\n";
+	}
+}

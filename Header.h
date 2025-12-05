@@ -18,16 +18,31 @@ struct Product {
 	double price;
 };
 
-struct Product_Count {
-	std::string name;
-	int count;
+//Struct for pending orders for the shopkeeper
+struct Product_Count
+{
+	int product_id;
+	string name;
+	int total_quantity;   // pending quantity here
 };
 
-struct Order {
-	std::string name;
-	int Time;
-	std::vector<Product> products;
+//Structure to display the info of an order to its customer
+struct OrderItem
+{
+	int product_id;
+	string name;
+	int quantity;
+	int is_ready;
 };
+
+struct Order
+{
+	int order_id;
+	string customer_name;
+	int time;
+	vector<OrderItem> items;
+};
+
 
 sqlite3* openDB();
 void CreateTables(sqlite3* db);
@@ -39,10 +54,11 @@ void addProductToOrder(sqlite3* db, int order_id, int product_id, int quantity);
 void updateStatus(sqlite3* db, int order_id, int product_id);
 
 // TODO: implement these
-void deleteProduct(int product_id);
-std::vector<Product_Count> getOrderedProductsBySubgroup(std::string subgroup);
+void deleteProduct(sqlite3* db, int id);
+vector<Product_Count> getOrderedProductsBySubgroup(sqlite3* db, const string& subgroup);
 void updateProductStatus(std::string name);
-Order getOrderById(int order_id);
+void markOldestPendingReady(sqlite3* db, const string& productName);
+Order getOrderById(sqlite3* db, int order_id);
 
 // TODO: fix Time in orders table to use time_t type (aka long long) type instead of text
 // and handle the db accordingly
