@@ -26,6 +26,7 @@ bool is_admin(const crow::request& req, const string secret_key) {
 crow::response custom_redirect(string path) {
 	crow::response res{};
 	res.redirect(path);
+	res.code = 303;
 	return res;
 };
 

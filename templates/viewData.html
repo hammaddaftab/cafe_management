@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Cafe Data</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="/static/script.js"></script>
+
+    <link rel="stylesheet" href="/static/styles.css"> 
+    <link rel="stylesheet" href="/static/commonData.css"> 
+    <link rel="stylesheet" href="/static/viewData.css"> 
+</head>
+<body>
+    <div id="lottie-background"></div>
+    
+    <div class="header-left">
+        <div class="header-text">CONCORDIA 2</div>
+    </div>
+    <div class="logo-container">
+        <img src="/static/logo.png" alt="NUST Logo">
+    </div>
+
+    <div class="data-title">
+        CURRENT PRODUCT DATA
+    </div>
+    
+    <div class="data-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Cost</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                </tr>
+            
+            {{#products}}
+                <tr>
+                    <td>{{name}}</td>
+                    <td>{{price}}</td>
+                    <td>{{subgroup}}</td>
+                    <td>
+                        <a href="/admin/products/edit?id={{id}}">
+                            <button>Edit</button>
+                        </a>
+                    </td>
+                </tr>
+            {{/products}}
+            </thead>
+            <tbody id="product-list-body">
+            </tbody>
+        </table>
+    </div>
+    
+    <button class="back-button">
+        BACK TO ENTRY
+    </button>
+</body>
+</html>

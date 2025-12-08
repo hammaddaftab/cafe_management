@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{subgroup}} Orders</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="/static/script.js"></script>
+    <script src="/static/subgroupView.js"></script>
+
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/commonData.css">
+
+    <style>
+        .markDoneBtn {
+            padding: 8px 14px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="lottie-background"></div>
+
+    <div class="header-left">
+        <div class="header-text">CONCORDIA 2</div>
+    </div>
+
+    <div class="logo-container">
+        <img src="/static/logo.png" alt="NUST Logo">
+    </div>
+
+    <div class="data-title" data-subgroup="{{subgroup}}">{{subgroup}} — Pending Items</div>
+
+    <div class="central-form-group">
+        <div class="data-container">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Count</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {{#product_count}}
+                    <tr id="row-{{product_id}}">
+                        <td>{{name}}</td>
+                        <td name="total_quantity">{{total_quantity}}</td>
+                        <td>
+                            <button 
+                                onclick="markDone({{product_id}})"
+                                class="markDoneBtn"
+                                >
+                                Done
+                            </button>
+                        </td>
+                    </tr>
+                    {{/product_count}}
+
+                    {{^product_count}}
+                    <tr id="all-completed">
+                        <td colspan="3" style="text-align:center; padding:20px;">
+                            All items completed 🎉
+                        </td>
+                    </tr>
+                    {{/product_count}}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+</body>
+</html>

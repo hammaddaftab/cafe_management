@@ -133,14 +133,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="structConversion.cpp" />
     <ClCompile Include="sqlite_helper.cpp" />
     <ClCompile Include="helper.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="file.md">
-      <SubType>
-      </SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header.h" />

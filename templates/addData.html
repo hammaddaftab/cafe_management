@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Add New Cafe Item</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+        <!-- <script src="/static/script.js"></script> -->
+
+        <link rel="stylesheet" href="/static/styles.css"> 
+        <link rel="stylesheet" href="/static/commonData.css"> 
+        <link rel="stylesheet" href="/static/addData.css"> 
+
+    </head>
+    <body>
+        
+        <div id="lottie-background"></div>
+
+        <div class="header-left">
+            <div class="header-text">CONCORDIA 2</div>
+        </div>
+
+        <div class="logo-container">
+            <img src="/static/logo.png" alt="NUST Logo">
+        </div>
+        
+        <div class="container">
+            <h2 class="form-header">Product Entry</h2>
+            
+            <form id="productForm" method="post" action="/admin/products/add" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="productName">Product Name:</label>
+                    <input type="text" id="productName" name="name" required placeholder="e.g., Biryani ,Shawarma">
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">Price:</label>
+                    <input type="number" id="productPrice" name="price" required min="10" step="10" placeholder="e.g., 270">
+                </div>
+
+                <div class="form-group">
+                    <label for="productGroup">Group / Category:</label>
+                    <input type="text" id="productGroup" name="subgroup" required placeholder="e.g., shakes, Fast Food">
+                </div>
+
+                <button type="enter">Submit Product</button>
+            </form>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                lottie.loadAnimation({
+                    container: document.getElementById('lottie-background'),
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: '/static/Cafe.json' 
+                });
+            });
+        </script>
+    </body>
+</html>

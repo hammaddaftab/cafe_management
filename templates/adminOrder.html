@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Order</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="/static/script.js"></script>
+
+    <link rel="stylesheet" href="/static/styles.css"> 
+    <link rel="stylesheet" href="/static/commonData.css"> 
+</head>
+
+<body>
+    <div id="lottie-background"></div>
+
+    <div class="header-left">
+        <div class="header-text">CONCORDIA 2</div>
+    </div>
+
+    <div class="logo-container">
+        <img src="/static/logo.png" alt="NUST Logo">
+    </div>
+
+    <div class="data-title">
+        CREATE NEW ORDER
+    </div>
+
+    <div class="data-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Cost</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+
+            <tbody id="order-products-body">
+                {{#products}}
+                <tr>
+                    <td>{{name}}</td>
+                    <td>{{price}}</td>
+                    <td>{{subgroup}}</td>
+                    <td>
+                        <input 
+                            type="number" 
+                            min="0" 
+                            value="0" 
+                            id="qty-{{id}}" 
+                            style="
+                                width: 70px; 
+                                padding: 6px; 
+                                border-radius: 8px; 
+                                border: 1px solid #777;
+                            "
+                        >
+                    </td>
+                </tr>
+                {{/products}}
+            </tbody>
+        </table>
+    </div>
+
+    <button 
+        class="back-button" 
+        onclick="submitOrder()"
+        style="background-color:#007bff; color:white; font-weight:bold;"
+    >
+        SUBMIT ORDER
+    </button>
+
+    <button 
+        class="back-button"
+        onclick="window.location.href='/admin'"
+        style="margin-top:10px;"
+    >
+        BACK TO PANEL
+    </button>
+
+    <script>
+        function submitOrder() {
+            // Build product list
+            const rows = document.querySelectorAll("#order-products-body tr");
+            let productEntries = [];
+            rows.forEach((row) => {
+                const input = row.querySelector("input");
+                const quantity = parseInt(input.value);
+                if (quantity > 0) {
+                    const id = input.id.replace("qty-", "");
+                    productEntries.push({
+                        id: id,
+                        quantity: quantity
+                    });
+                }
+            });
+
+            if (productEntries.length === 0) {
+                alert("Please enter at least one product quantity.");
+                return;
+            }
+
+            // Convert to the backend's expected structure
+            const formData = new URLSearchParams();
+            formData.append("name", "Admin Order");
+            formData.append("products_count", productEntries.length);
+
+            productEntries.forEach((p, index) => {
+                let i = index + 1;
+                formData.append(`product${i}[id]`, p.id);
+                formData.append(`product${i}[quantity]`, p.quantity);
+            });
+
+            fetch("/admin/orders/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData.toString()
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === "successful") {
+                    alert("Order successfully submitted!");
+                    // location.reload();
+                } else {
+                    alert("Order submission failed.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Network error submitting order.");
+            });
+        }
+    </script>
+</body>
+</html>
