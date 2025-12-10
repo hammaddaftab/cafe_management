@@ -184,16 +184,17 @@ string addProductToOrder(sqlite3* db, int order_id, int product_id, int quantity
 }
 
 //Updating status of order
-void updateStatus(sqlite3* db, int sr)
+void updateStatus(sqlite3* db, int sr, int ready_count)
 {
 	const char* sql =
-		"UPDATE OrderItems SET is_ready = 1 "
+		"UPDATE OrderItems SET is_ready = is_ready + ? "
 		"WHERE Sr = ?;";
 
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-	sqlite3_bind_int(stmt, 1, sr);
+	sqlite3_bind_int(stmt, 1, ready_count);
+	sqlite3_bind_int(stmt, 2, sr);
 
 	sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
@@ -237,10 +238,10 @@ vector<Product_Count> getOrderedProductsBySubgroup(sqlite3* db, const string& su
 	vector<Product_Count> result;
 
 	const char* sql =
-		"SELECT Products.Product_id, Products.Name, SUM(OrderItems.Quantity) "
+		"SELECT Products.Product_id, Products.Name, SUM(OrderItems.Quantity), SUM(OrderItems.is_ready) "
 		"FROM OrderItems "
 		"JOIN Products ON OrderItems.Product_id = Products.Product_id "
-		"WHERE Products.Subgroup = ? AND OrderItems.is_ready = 0 "
+		"WHERE Products.Subgroup = ? AND OrderItems.is_ready < OrderItems.Quantity "
 		"GROUP BY Products.Product_id, Products.Name;";
 
 	sqlite3_stmt* stmt;
@@ -264,7 +265,7 @@ vector<Product_Count> getOrderedProductsBySubgroup(sqlite3* db, const string& su
 		const unsigned char* txt = sqlite3_column_text(stmt, 1);
 		pc.name = txt ? (const char*)txt : "";
 
-		pc.total_quantity = sqlite3_column_int(stmt, 2);
+		pc.total_quantity = sqlite3_column_int(stmt, 2) - sqlite3_column_int(stmt, 3);
 
 		result.push_back(pc);
 	}
@@ -275,13 +276,13 @@ vector<Product_Count> getOrderedProductsBySubgroup(sqlite3* db, const string& su
 
 
 //Function to update the oldest order just by name
-int markOldestPendingReady(sqlite3* db, const int product_id)
+int markOldestPendingReady(sqlite3* db, const int product_id, const int ready_count)
 {
 	// SQL: find the oldest pending OrderItems row for this product
 	const char* sql =
 		"SELECT Sr, Order_id "
 		"FROM OrderItems "
-		"WHERE Product_id = ? AND is_ready = 0 "
+		"WHERE Product_id = ? AND is_ready < quantity "
 		"ORDER BY Order_id ASC "
 		"LIMIT 1;";
 
@@ -307,8 +308,9 @@ int markOldestPendingReady(sqlite3* db, const int product_id)
 	if (sr == -1)
 		return -1;
 
-	cout << "Proceeding to update the status" << endl;
-	updateStatus(db, sr);
+	cout << "Proceeding to add " << ready_count <<  " to product_id: " << product_id 
+		<< " with order_id: " << order_id << endl;
+	updateStatus(db, sr, ready_count);
 	return order_id;
 }
 

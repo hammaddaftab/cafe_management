@@ -50,7 +50,7 @@
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody id="products_container">
                     {{#product_count}}
                     <tr id="row-{{product_id}}">
                         <td>{{name}}</td>
@@ -66,13 +66,11 @@
                     </tr>
                     {{/product_count}}
 
-                    {{^product_count}}
-                    <tr id="all-completed">
+                    <tr id="all-completed" {{#product_count}} style="display: none;" {{/product_count}}>
                         <td colspan="3" style="text-align:center; padding:20px;">
-                            All items completed 🎉
+                            All items completed!
                         </td>
                     </tr>
-                    {{/product_count}}
                 </tbody>
             </table>
 

@@ -51,12 +51,12 @@ void updateProduct(sqlite3* db, int id, std::string name, std::string subgroup, 
 std::vector<Product> selectAllProducts(sqlite3* db);
 int addOrder(sqlite3* db, int time, std::string name);
 std::string addProductToOrder(sqlite3* db, int order_id, int product_id, int quantity);
-void updateStatus(sqlite3* db, int sr);
+void updateStatus(sqlite3* db, int sr, int ready_count);
 
 // DONE: implement these
 void deleteProduct(sqlite3* db, int id);
 std::vector<Product_Count> getOrderedProductsBySubgroup(sqlite3* db, const std::string& subgroup);
-int markOldestPendingReady(sqlite3* db, const int product_id);
+int markOldestPendingReady(sqlite3* db, const int product_id, const int ready_count);
 Order getOrderById(sqlite3* db, int order_id);
 
 // Added by Hammad

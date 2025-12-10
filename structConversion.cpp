@@ -19,8 +19,11 @@ crow::json::wvalue toData(const OrderItem& item) {
     crow::json::wvalue d;
     d["product_id"] = item.product_id;
     d["name"] = item.name;
-    d["quantity"] = item.quantity;
+    d["quantity"] = item.quantity;  
     d["is_ready"] = item.is_ready;
+
+    d["all_done"] = item.quantity == item.is_ready; // redundant fields
+    d["pending"] = item.quantity - item.is_ready;
     return d;
 }
 crow::json::wvalue toData(const Order& o) {

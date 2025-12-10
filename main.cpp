@@ -4,6 +4,7 @@
 using namespace std;
 std::unordered_map<std::string, crow::websocket::connection*> userSockets;
 
+string secret_key = { "unguessable_random_number" };
 
 int main()
 {
@@ -18,20 +19,28 @@ int main()
     // Handles everything realted to products
     // in the cafe, adding, deleting, viewing and editing
     CROW_ROUTE(app, "/admin/products/view")([&](const crow::request req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
+
         auto page = crow::mustache::load("viewData.html");
         auto products = selectAllProducts(db);
         crow::mustache::context ctx{ toData(products) };
-        return page.render(ctx);
+        return crow::response{ page.render(ctx) };
     });
 
-    CROW_ROUTE(app, "/admin/products/add")([]() {
+    CROW_ROUTE(app, "/admin/products/add")([&](const crow::request req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
+
         auto page = crow::mustache::load("addData.html");
         crow::mustache::context ctx{};
-        return page.render(ctx);
+        return crow::response{ page.render(ctx) };
     });
 
     CROW_ROUTE(app, "/admin/products/add").methods(crow::HTTPMethod::POST)
      ([&](const crow::request& req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
 
         crow::multipart::message mlt = crow::multipart::message(req);
 
@@ -45,21 +54,26 @@ int main()
 
     CROW_ROUTE(app, "/admin/products/delete").methods(crow::HTTPMethod::POST)
     ([&](const crow::request& req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
 
         int id = crow::json::load(req.body.data())["id"].i();
 
         // Completed: implement this sqlite function
         deleteProduct(db, id);
 
-        crow::json::wvalue res{
+        crow::json::wvalue json_res{
             {"status", "successful"},
             {"msg", "Successfully deleted the product given product"}
         };
-        return res;
+        return crow::response(json_res);
     });
 
     CROW_ROUTE(app, "/admin/products/edit")
     ([&](const crow::request& req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
+
         crow::query_string q = req.url_params;
 
         int id = stoi(q.get("id"));
@@ -67,10 +81,13 @@ int main()
 
         auto page = crow::mustache::load("editData.html");
         crow::mustache::context ctx{ toData(p) };
-        return page.render(ctx);
+        return crow::response(page.render(ctx));
     });
     CROW_ROUTE(app, "/admin/products/edit").methods(crow::HTTPMethod::POST)
     ([&](const crow::request& req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
+
         crow::query_string q = req.get_body_params();
 
         string name = q.get("name");
@@ -101,9 +118,8 @@ int main()
             crow::response res{};
 
             // add session cookie header
-            string key = { "unguessable_random_number" };
             res.add_header(
-                "Set-Cookie", string("session_id=") + key + "; Path=/"
+                "Set-Cookie", string("session_id=") + secret_key + "; Path=/"
             );
 
             res.redirect("/admin/products");
@@ -143,16 +159,6 @@ int main()
         return page.render(ctx);
     });
 
-    CROW_ROUTE(app, "/admin/orders/done").methods(crow::HTTPMethod::POST)
-        ([&](const crow::request& req) {
-        auto data = crow::json::load(req.body);
-        markOldestPendingReady(db, data["product_id"].i());
-        return crow::json::wvalue{
-            {"status", "successful"},
-            {"msg", "Successfully updated the order status."}
-        };
-    });
-
     CROW_ROUTE(app, "/admin/orders/add").methods(crow::HTTPMethod::POST)
         ([&](const crow::request& req) {
         crow::query_string q = req.get_body_params();
@@ -178,8 +184,8 @@ int main()
                 {"name", name},
                 {"total_quantity", total_quantity}
             };
-            cout << "order product received, subgroup is: " << subgroup;
-            auto it = userSockets.find(subgroup);
+            cout << "Order product received by admin for subgroup: " << subgroup << endl;
+            auto it = userSockets.find("s:" + subgroup);
             if (it != userSockets.end() && it->second) {
                 it->second->send_text(product_status.dump());
             }
@@ -212,37 +218,53 @@ int main()
 
     // Handles websocket connections for customers
     // as well as for sub-admins in each subgroup of the cafe
-    CROW_WEBSOCKET_ROUTE(app, "/subgroup")
+    CROW_WEBSOCKET_ROUTE(app, "/ws")
     .onaccept([&](const crow::request& req, void** userdata) {
-        auto subgroup = new std::string(req.url_params.get("subgroup")); // allocate
-        // TODO: verfiy if this is a valid subgroup
-        *userdata = subgroup;
+        std::string type;
+
+        if (req.url_params.get("subgroup")) {
+            type = string{"s:"} + req.url_params.get("subgroup");
+        }
+        else if (req.url_params.get("order_id")) {
+            type = string{"o:"} + req.url_params.get("order_id");
+        }
+        else {
+            return false; // invalid connection
+        }
+
+        *userdata = new std::string(type);
         return true;
     })
     .onopen([&](crow::websocket::connection& conn) {
-        auto subgroup = static_cast<std::string*>(conn.userdata());
-        cout << "the subgroup on open is: " << *subgroup;
-        userSockets[*subgroup] = &conn;
+        auto key = static_cast<std::string*>(conn.userdata());
+        std::cout << "WS opened: " << *key << std::endl;
+        userSockets[*key] = &conn;
     })
+
     .onmessage([&](crow::websocket::connection& conn, const std::string& message, bool is_binary) {
         auto data = crow::json::load(message);
+
         auto product_id = data["product_id"].i();
         auto subgroup = string{ data["subgroup"] };
-        int order_id = markOldestPendingReady(db, product_id);
+        auto ready_count = data.has("ready_count") ? data["ready_count"].i() : 1;
+        int order_id = markOldestPendingReady(db, product_id, ready_count);
 
-        crow::json::wvalue product_status{
+        crow::json::wvalue update{
             {"product_id", product_id},
-            {"total_quantity", -1}
+            {"total_quantity", -ready_count}
         };
 
-        auto it = userSockets.find(subgroup);
-        if (it != userSockets.end() && it->second) {
-            it->second->send_text(product_status.dump());
+
+        // Notify subgroup
+        std::string subgroupKey = "s:" + subgroup;
+        if (userSockets.count(subgroupKey)) {
+            userSockets[subgroupKey]->send_text(update.dump());
         }
 
-        auto it2 = userSockets.find(to_string(order_id));
-        if (it2 != userSockets.end() && it2->second) {
-            it2->second->send_text(product_status.dump());
+        // Notify customer
+        std::string customerKey = "o:" + std::to_string(order_id);
+        if (userSockets.count(customerKey)) {
+            userSockets[customerKey]->send_text(update.dump());
         }
 
     })

@@ -8,7 +8,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <script src="/static/script.js"></script>
-    <script src="/static/subgroupView.js"></script>
+    <script src="/static/clientView.js"></script>
 
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="/static/commonData.css">
@@ -32,7 +32,7 @@
         <img src="/static/logo.png" alt="NUST Logo">
     </div>
 
-    <div class="data-title" data-subgroup="{{subgroup}}">Order #{{order_id}}</div>
+    <div class="data-title" data-order_id="{{order_id}}">Order #{{order_id}}</div>
 
     <p><strong>Customer:</strong> {{customer_name}}</p>
     <p><strong>Placed at:</strong> {{time}}</p>
@@ -53,17 +53,17 @@
 
                 <tbody>
                     {{#items}}
-                    <tr>
+                    <tr id="row-{{product_id}}" data-max="{{quantity}}">
                         <td>{{name}}</td>
                         <td>{{quantity}}</td>
                         <td>
-                            {{#is_ready}}
+                            {{#all_done}}
                                 <span class="ready">READY</span>
-                            {{/is_ready}}
+                            {{/all_done}}
 
-                            {{^is_ready}}
-                                <span class="pending">Pending</span>
-                            {{/is_ready}}
+                            {{^all_done}}
+                                <span class="pending">{{pending}} Pending</span>
+                            {{/all_done}}
                         </td>
                     </tr>
                     {{/items}}
