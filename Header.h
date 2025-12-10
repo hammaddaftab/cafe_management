@@ -2,11 +2,16 @@
 #include <vector>
 #include <sqlite3.h>
 #include "crow.h"
+#include <random>
+#include <string>     // std::string
+#include <ctime>      // std::time_t, localtime_s
+#include <sstream>    // std::ostringstream
+#include <iomanip>    // std::put_time
 
 std::string getValueFromCookie(const std::string cookie_str, const std::string name);
 bool is_admin(const crow::request& req, const std::string secret_key);
 crow::response custom_redirect(std::string path);
-
+std::string getFormattedTime(std::time_t t);
 
 // headers and structs for sqlite functions
 

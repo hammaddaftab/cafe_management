@@ -12,9 +12,22 @@ int main()
     sqlite3* db = openDB();
     CreateTables(db);
 
-    CROW_ROUTE(app, "/test_route")([]() {
-        return "Hello world";
+    // The INDEX route
+    CROW_ROUTE(app, "/")([&](const crow::request req) {
+        auto page = crow::mustache::load("clientOrder.html");
+        return crow::response{ page.render() };
     });
+
+    CROW_ROUTE(app, "/admin")([&](const crow::request req) {
+        if (!is_admin(req, secret_key))
+            return custom_redirect("/admin/auth");
+
+        auto page = crow::mustache::load("adminView.html");
+        return crow::response{ page.render() };
+    });
+
+
+
 
     // Handles everything realted to products
     // in the cafe, adding, deleting, viewing and editing
@@ -57,16 +70,13 @@ int main()
         if (!is_admin(req, secret_key))
             return custom_redirect("/admin/auth");
 
-        int id = crow::json::load(req.body.data())["id"].i();
+        
+        int id = stoi(req.get_body_params().get("id"));
 
         // Completed: implement this sqlite function
         deleteProduct(db, id);
 
-        crow::json::wvalue json_res{
-            {"status", "successful"},
-            {"msg", "Successfully deleted the product given product"}
-        };
-        return crow::response(json_res);
+        return custom_redirect("/admin/products/view");
     });
 
     CROW_ROUTE(app, "/admin/products/edit")
@@ -83,6 +93,7 @@ int main()
         crow::mustache::context ctx{ toData(p) };
         return crow::response(page.render(ctx));
     });
+
     CROW_ROUTE(app, "/admin/products/edit").methods(crow::HTTPMethod::POST)
     ([&](const crow::request& req) {
         if (!is_admin(req, secret_key))
@@ -102,8 +113,13 @@ int main()
 
 
 
+
     // Handles authentication for the admin
     // through manually added session cookie
+    CROW_ROUTE(app, "/admin/auth")([&](const crow::request req) {
+        auto page = crow::mustache::load("auth.html");
+        return crow::response{ page.render() };
+    });
     CROW_ROUTE(app, "/admin/auth").methods(crow::HTTPMethod::POST)
     ([](const crow::request& req)
     {
@@ -115,14 +131,11 @@ int main()
         string username = q.get("username");
 
         if (username == HARDCODED_USERNAME && password == HARDCODED_PASSWORD) {
-            crow::response res{};
-
             // add session cookie header
+            auto res = custom_redirect("/admin");
             res.add_header(
                 "Set-Cookie", string("session_id=") + secret_key + "; Path=/"
             );
-
-            res.redirect("/admin/products");
             return res;
         }
         else {
@@ -136,9 +149,10 @@ int main()
 
 
 
+
     // Handles placing orders, distribution to respective sections
     // updating the statuses and everything
-    CROW_ROUTE(app, "/admin/orders/place") // unused
+    CROW_ROUTE(app, "/admin/orders/place")
         ([&](const crow::request& req) {
         auto products = selectAllProducts(db);
         auto page = crow::mustache::load("adminOrder.html");
@@ -191,7 +205,7 @@ int main()
             }
         }
 
-        
+        // TODO: improve the response
         crow::json::wvalue success_res{
             {"status", "successful"},
             {"msg", "All ordered items have been successfully received."}
@@ -275,8 +289,8 @@ int main()
             else
                 ++it;
         }
-        auto subgroup = static_cast<std::string*>(conn.userdata());
-        delete subgroup; // free memory
+        auto type = static_cast<std::string*>(conn.userdata());
+        delete type; // free memory
     });
 
     app.port(5000).multithreaded().run();

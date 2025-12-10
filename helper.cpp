@@ -1,5 +1,6 @@
 #include <iostream>
 #include "header.h"
+
 using namespace std;
 
 
@@ -29,6 +30,36 @@ crow::response custom_redirect(string path) {
 	res.code = 303;
 	return res;
 };
+
+
+string getFormattedTime(time_t t) {
+	std::tm tm = {};
+	localtime_s(&tm, &t);
+
+	int day = tm.tm_mday;
+
+	std::string suffix = "th";
+	if (day % 10 == 1 && day != 11) suffix = "st";
+	else if (day % 10 == 2 && day != 12) suffix = "nd";
+	else if (day % 10 == 3 && day != 13) suffix = "rd";
+
+	std::ostringstream oss;
+	oss << std::put_time(&tm, "%H:%M ")   // time
+		<< day << suffix << " "          // 27th, 1st, 3rd, etc.
+		<< std::put_time(&tm, "%b");      // month abbreviation (Dec, Jan, etc.)
+
+	return oss.str();
+}
+
+
+int random_id() {
+	std::random_device rd;              
+	std::mt19937 gen(rd());              
+	std::uniform_int_distribution<> dist(100000, 999999);
+
+	int id = dist(gen);
+	return id;
+}
 
 
 int main_() {

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Admin</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+        <!-- <script src="/static/script.js"></script> -->
+
+        <link rel="stylesheet" href="/static/app.css"> 
+
+        <style>
+            .containerr {
+                width: 100%;
+                display: flex;
+                align-items: stretch;
+                background-color: transparent;
+                gap: 10px
+            }
+            .card-content {
+                height: 100%;
+                justify-content:space-between;
+                border-radius: 10px;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                background-color: #0b1120;
+            }
+            .containerr > * {
+                flex-basis: 50%;
+            }
+            body {
+                padding: 10px !important;
+            }
+            .all-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .card-content > * {
+                width: auto !important;
+            }
+            .card-content button {
+                width: 100%;
+            }
+            .header-left {
+                position: relative;
+            }
+        </style>
+
+    </head>
+    <body>
+        
+        <div id="lottie-background"></div>
+        <div class="all-container">
+            <div class="header-left">
+                <div class="header-text">Welcome Back!</div>
+            </div>
+
+            <div class="logo-container">
+                <img src="/static/logo.png" alt="NUST Logo">
+            </div>
+            
+            <div class="containerr">
+                <div class="card">
+                    <div class="card-content">
+                        <h2>Add Product</h2>
+                        <p>Visit this page to add more produts into your cafe inventory.</p>
+                        <a href="/admin/products/add">
+                            <button>Visit</button>
+                        </a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h2>View Products</h2>
+                        <p>Visit this page to list all the products and make changes to your cafe inventory.</p>
+                        <a href="/admin/products/view">
+                            <button>Visit</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+
+            <div class="containerr">
+                <div class="card">
+                    <div class="card-content">
+                        <h2>Start Ordering</h2>
+                        <p>If you want to start ordering now.</p>
+                        <a href="/admin/orders/place">
+                            <button>Visit</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                lottie.loadAnimation({
+                    container: document.getElementById('lottie-background'),
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: '/static/Cafe.json' 
+                });
+            });
+        </script>
+    </body>
+</html>

@@ -31,7 +31,7 @@ crow::json::wvalue toData(const Order& o) {
 
     d["order_id"] = o.order_id;
     d["customer_name"] = o.customer_name;
-    d["time"] = o.time;
+    d["time"] = getFormattedTime(o.time);
 
     crow::json::wvalue::list items_list{};
 
