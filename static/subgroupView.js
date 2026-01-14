@@ -12,7 +12,7 @@ function toggleAllCompleted(status) {
 document.addEventListener("DOMContentLoaded", () => {
     const subgroup = document.querySelector(".data-title").getAttribute("data-subgroup")
     console.log("Found subgroup as: ", subgroup) // logs the output
-    const ws = new WebSocket(`ws://localhost:5000/ws?subgroup=${subgroup}`);
+    const ws = new WebSocket(`ws://${window.location.host}/ws?subgroup=${subgroup}`);
 
     ws.onopen = () => {
         console.log("[WS] Connected to subgroup:", subgroup);

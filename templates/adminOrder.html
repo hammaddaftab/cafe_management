@@ -113,7 +113,7 @@
             .then(r => r.json())
             .then(data => {
                 if (data.status === "successful") {
-                    alert("Order successfully submitted!");
+                    alert("Order successfully submitted! OrderId: " + data.order_id);
                     location.reload();
                 } else {
                     alert("Order submission failed.");

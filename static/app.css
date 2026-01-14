@@ -51,7 +51,7 @@ button {
 
 /* --- CORNER HEADERS --- */
 .header-left {
-    position: absolute; 
+    align-self: flex-start;
     top: 20px;       
     left: 20px;     
     z-index: 10;

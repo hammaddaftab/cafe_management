@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <script src="/static/script.js"></script>
 
-    <link rel="stylesheet" href="/static/app.css"> 
+    <link rel="stylesheet" href="/static/app.css">  
 </head>
 <body>
     <div id="lottie-background"></div>
@@ -22,6 +22,14 @@
     </div>
 
     <div class="data-title">EDIT PRODUCT DATA</div>
+
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+        }
+    </style>
 
     <div class="central-form-group">
         <form action="/admin/products/edit" method="post" enctype="application/x-www-form-urlencoded">
@@ -45,12 +53,14 @@
             </div>
             <input type="hidden" name="id" value="{{id}}">
             <button type="submit" class="save-button">SAVE CHANGES</button>
-        </form>
 
-        <form action="/admin/products/delete" enctype="application/x-www-form-urlencoded" method="post">
-            <input type="hidden" value="{{product_id}}">
-            <button type="submit">Delete</button>
+            <button onclick="deleteProduct({{id}})">Delete</button>
+
         </form>
     </div>
+
+    <script>
+
+    </script>
 </body>
 </html>

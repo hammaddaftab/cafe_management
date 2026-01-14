@@ -14,8 +14,11 @@ int main()
 
     // The INDEX route
     CROW_ROUTE(app, "/")([&](const crow::request req) {
+        auto products = selectAllProducts(db);
+        crow::mustache::context ctx{ toData(products) };
+
         auto page = crow::mustache::load("clientOrder.html");
-        return crow::response{ page.render() };
+        return crow::response{ page.render(ctx) };
     });
 
     CROW_ROUTE(app, "/admin")([&](const crow::request req) {
@@ -205,10 +208,11 @@ int main()
             }
         }
 
-        // TODO: improve the response
+        // DONE: improve the response
         crow::json::wvalue success_res{
             {"status", "successful"},
-            {"msg", "All ordered items have been successfully received."}
+            {"msg", "All ordered items have been successfully received."},
+            {"order_id", order_id}
         };
         success_res["data"]["order_id"] = static_cast<uint64_t>(order_id);
         return success_res;
